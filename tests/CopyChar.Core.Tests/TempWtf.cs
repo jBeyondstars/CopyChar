@@ -26,5 +26,8 @@ public sealed class TempWtf : IDisposable
         return path;
     }
 
+    public Character Character(string name) =>
+        WtfScanner.FindCharacters(WtfPath).Single(c => c.Name == name);
+
     public void Dispose() => Directory.Delete(Root, recursive: true);
 }

@@ -8,7 +8,8 @@ public class CopyPlanTests
         using var wtf = new TempWtf();
         wtf.AddCharacterFile("111#1", "Realm", "Source", "config-cache.wtf");
         wtf.AddCharacterFile("111#1", "Realm", "Target", "config-cache.wtf");
-        var (source, target) = Characters(wtf);
+        var source = wtf.Character("Source");
+        var target = wtf.Character("Target");
 
         var plan = CopyPlan.Create(source, [target], [SettingCategory.GameOptions, SettingCategory.Macros], []);
 
@@ -23,7 +24,8 @@ public class CopyPlanTests
         wtf.AddCharacterFile("111#1", "Realm", "Source", @"SavedVariables\Questie.lua");
         wtf.AddCharacterFile("111#1", "Realm", "Source", @"SavedVariables\TomTom.lua");
         wtf.AddCharacterFile("111#1", "Realm", "Target", "AddOns.txt");
-        var (source, target) = Characters(wtf);
+        var source = wtf.Character("Source");
+        var target = wtf.Character("Target");
 
         var plan = CopyPlan.Create(source, [target], [], ["TomTom"]);
 
@@ -36,15 +38,10 @@ public class CopyPlanTests
         using var wtf = new TempWtf();
         wtf.AddCharacterFile("111#1", "Realm", "Source", "config-cache.wtf");
         wtf.AddCharacterFile("111#1", "Realm", "Target", "config-cache.wtf");
-        var (source, target) = Characters(wtf);
+        var source = wtf.Character("Source");
+        var target = wtf.Character("Target");
 
         Assert.Throws<ArgumentException>(() =>
             CopyPlan.Create(source, [target, source], SettingCategory.All, []));
-    }
-
-    private static (Character Source, Character Target) Characters(TempWtf wtf)
-    {
-        var characters = WtfScanner.FindCharacters(wtf.WtfPath);
-        return (characters.Single(c => c.Name == "Source"), characters.Single(c => c.Name == "Target"));
     }
 }

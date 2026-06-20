@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.IO;
 using CopyChar.Core;
 
@@ -5,8 +6,12 @@ namespace CopyChar.App;
 
 public sealed class MainViewModel : ObservableObject
 {
-    public MainViewModel(string installPath)
+    private readonly Func<string, bool> _confirm;
+
+    public MainViewModel(string installPath, Func<string, bool> confirm)
     {
+        _confirm = confirm;
+        CopyCommand = new RelayCommand(Copy, CanCopy);
         InstallPath = installPath;
     }
 
@@ -58,6 +63,10 @@ public sealed class MainViewModel : ObservableObject
                 .Where(c => value is not null && c != value)
                 .Select(c => new Selectable<Character>(c))
                 .ToList();
+            // Unchecked by default: some addons keep character progress (quests, guides) in these files.
+            Addons = value is null
+                ? []
+                : AddonSavedVariables.FindAddons(value).Select(a => new Selectable<string>(a)).ToList();
         }
     }
 
@@ -66,4 +75,68 @@ public sealed class MainViewModel : ObservableObject
         get;
         private set { field = value; OnPropertyChanged(); }
     } = [];
+
+    public IReadOnlyList<Selectable<SettingCategory>> Categories { get; } =
+        SettingCategory.All.Select(c => new Selectable<SettingCategory>(c, isSelected: true)).ToList();
+
+    public IReadOnlyList<Selectable<string>> Addons
+    {
+        get;
+        private set { field = value; OnPropertyChanged(); }
+    } = [];
+
+    public ObservableCollection<string> Log { get; } = [];
+
+    public RelayCommand CopyCommand { get; }
+
+    private bool CanCopy() =>
+        Source is not null
+        && Targets.Any(t => t.IsSelected)
+        && (Categories.Any(c => c.IsSelected) || Addons.Any(a => a.IsSelected));
+
+    private void Copy()
+    {
+        if (GameProcess.IsRunning(SelectedFlavor!))
+        {
+            Write("The game is running: quit it before copying, otherwise it will overwrite the files when it closes.");
+            return;
+        }
+
+        var plan = CopyPlan.Create(
+            Source!,
+            Selected(Targets),
+            Selected(Categories),
+            Selected(Addons));
+
+        foreach (var file in plan.SkippedFiles)
+            Write($"Skipped, not found for {plan.Source}: {file}");
+
+        if (plan.Files.Count == 0)
+        {
+            Write("Nothing to copy.");
+            return;
+        }
+
+        var question = $"Copy {plan.Files.Count} file(s) from {plan.Source} to {plan.Targets.Count} character(s)?\n\n"
+            + "Each target character is backed up before being changed.";
+        if (!_confirm(question))
+            return;
+
+        try
+        {
+            var backups = new CharacterCopier(new BackupStore(AppStorage.BackupFolder)).Execute(plan);
+            foreach (var (target, backup) in plan.Targets.Zip(backups))
+                Write($"Copied to {target} (backup: {Path.GetFileName(backup.ZipPath)})");
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Write($"Failed: {e.Message}");
+        }
+    }
+
+    private static List<T> Selected<T>(IEnumerable<Selectable<T>> items) =>
+        items.Where(i => i.IsSelected).Select(i => i.Item).ToList();
+
+    // Newest first, so the last result is always visible without scrolling.
+    private void Write(string message) => Log.Insert(0, $"{DateTime.Now:HH:mm:ss}  {message}");
 }

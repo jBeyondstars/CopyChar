@@ -30,6 +30,22 @@ public sealed class BackupStore(string rootPath)
         return Read(zipPath);
     }
 
+    // Puts the character folder back exactly as it was, including removing files added since.
+    // The current state is backed up first so a restore can itself be undone.
+    public Backup? Restore(Backup backup)
+    {
+        Backup? current = null;
+        if (Directory.Exists(backup.CharacterFolder))
+        {
+            current = Create(Character.FromFolder(backup.CharacterFolder));
+            Directory.Delete(backup.CharacterFolder, recursive: true);
+        }
+
+        ZipFile.ExtractToDirectory(backup.ZipPath, backup.CharacterFolder);
+        File.Delete(Path.Combine(backup.CharacterFolder, OriginEntry));
+        return current;
+    }
+
     public IReadOnlyList<Backup> List()
     {
         if (!Directory.Exists(rootPath))

@@ -7,12 +7,15 @@ namespace CopyChar.App;
 public sealed class MainViewModel : ObservableObject
 {
     private readonly Func<string, bool> _confirm;
+    private readonly BackupStore _backups = new(AppStorage.BackupFolder);
 
     public MainViewModel(string installPath, Func<string, bool> confirm)
     {
         _confirm = confirm;
         CopyCommand = new RelayCommand(Copy, CanCopy);
+        RestoreCommand = new RelayCommand(Restore, () => SelectedBackup is not null);
         InstallPath = installPath;
+        Backups = _backups.List();
     }
 
     public string InstallPath
@@ -96,7 +99,7 @@ public sealed class MainViewModel : ObservableObject
 
     private void Copy()
     {
-        if (GameProcess.IsRunning(SelectedFlavor!))
+        if (GameProcess.IsRunning(SelectedFlavor!.FolderPath))
         {
             Write("The game is running: quit it before copying, otherwise it will overwrite the files when it closes.");
             return;
@@ -124,7 +127,7 @@ public sealed class MainViewModel : ObservableObject
 
         try
         {
-            var backups = new CharacterCopier(new BackupStore(AppStorage.BackupFolder)).Execute(plan);
+            var backups = new CharacterCopier(_backups).Execute(plan);
             foreach (var (target, backup) in plan.Targets.Zip(backups))
                 Write($"Copied to {target} (backup: {Path.GetFileName(backup.ZipPath)})");
         }
@@ -132,6 +135,51 @@ public sealed class MainViewModel : ObservableObject
         {
             Write($"Failed: {e.Message}");
         }
+
+        Backups = _backups.List();
+    }
+
+    public IReadOnlyList<Backup> Backups
+    {
+        get;
+        private set { field = value; OnPropertyChanged(); }
+    } = [];
+
+    public Backup? SelectedBackup
+    {
+        get;
+        set { field = value; OnPropertyChanged(); }
+    }
+
+    public RelayCommand RestoreCommand { get; }
+
+    private void Restore()
+    {
+        var backup = SelectedBackup!;
+        if (GameProcess.IsRunning(backup.CharacterFolder))
+        {
+            Write("The game is running: quit it before restoring, otherwise it will overwrite the files when it closes.");
+            return;
+        }
+
+        var question = $"Restore {backup.CharacterLabel} to its state of {backup.CreatedAt:yyyy-MM-dd HH:mm}?\n\n"
+            + "The current state is backed up first, so the restore can be undone.";
+        if (!_confirm(question))
+            return;
+
+        try
+        {
+            var current = _backups.Restore(backup);
+            Write(current is null
+                ? $"Restored {backup.CharacterLabel} ({backup.CreatedAt:yyyy-MM-dd HH:mm})"
+                : $"Restored {backup.CharacterLabel} ({backup.CreatedAt:yyyy-MM-dd HH:mm}), previous state backed up: {Path.GetFileName(current.ZipPath)}");
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Write($"Failed: {e.Message}");
+        }
+
+        Backups = _backups.List();
     }
 
     private static List<T> Selected<T>(IEnumerable<Selectable<T>> items) =>

@@ -14,9 +14,10 @@ public static partial class GameProcess
 
     public static bool IsClientName(string processName) => ClientName().IsMatch(processName);
 
-    public static bool IsRunning(GameFlavor flavor)
+    // True when a client runs from the folder containing path (a flavor folder or anything below it).
+    public static bool IsRunning(string path)
     {
-        var flavorFolder = flavor.FolderPath.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        var target = WithTrailingSeparator(path);
 
         foreach (var process in Process.GetProcesses())
         {
@@ -28,7 +29,7 @@ public static partial class GameProcess
                 try
                 {
                     var exe = process.MainModule?.FileName;
-                    if (exe is null || exe.StartsWith(flavorFolder, StringComparison.OrdinalIgnoreCase))
+                    if (exe is null || target.StartsWith(WithTrailingSeparator(Path.GetDirectoryName(exe)!), StringComparison.OrdinalIgnoreCase))
                         return true;
                 }
                 catch (Win32Exception)
@@ -41,4 +42,7 @@ public static partial class GameProcess
 
         return false;
     }
+
+    private static string WithTrailingSeparator(string path) =>
+        Path.TrimEndingDirectorySeparator(path) + Path.DirectorySeparatorChar;
 }

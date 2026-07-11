@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using Microsoft.Win32;
 
@@ -29,5 +31,11 @@ public partial class MainWindow : Window
 
         _viewModel.InstallPath = dialog.FolderName;
         AppStorage.SaveInstallPath(dialog.FolderName);
+    }
+
+    private void OpenBackupFolder_Click(object sender, RoutedEventArgs e)
+    {
+        Directory.CreateDirectory(AppStorage.BackupFolder);
+        Process.Start("explorer.exe", AppStorage.BackupFolder);
     }
 }

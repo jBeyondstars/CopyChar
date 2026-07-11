@@ -12,19 +12,10 @@ public static class WtfScanner
         if (!Directory.Exists(accountsPath))
             return [];
 
-        var characters = new List<Character>();
-        foreach (var account in SubFolders(accountsPath))
-        foreach (var realm in SubFolders(account))
-        foreach (var character in SubFolders(realm))
-        {
-            characters.Add(new Character(
-                Path.GetFileName(account),
-                Path.GetFileName(realm),
-                Path.GetFileName(character),
-                character));
-        }
-
-        return characters
+        return SubFolders(accountsPath)
+            .SelectMany(SubFolders)
+            .SelectMany(SubFolders)
+            .Select(Character.FromFolder)
             .OrderBy(c => c.Account)
             .ThenBy(c => c.Realm)
             .ThenBy(c => c.Name)

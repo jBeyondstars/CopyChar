@@ -5,6 +5,8 @@ public class GameProcessTests
     [Theory]
     [InlineData("Wow", true)]
     [InlineData("WowClassic", true)]
+    [InlineData("WowB", true)]
+    [InlineData("WowClassicT", true)]
     [InlineData("WowVoiceProxy", false)]
     [InlineData("World of Warcraft Launcher", false)]
     [InlineData("Battle.net", false)]

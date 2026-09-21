@@ -8,8 +8,8 @@ namespace CopyChar.Core;
 // which would silently undo a copy made while it is running.
 public static partial class GameProcess
 {
-    // Wow for retail, WowClassic for every Classic flavor.
-    [GeneratedRegex(@"^Wow(Classic)?$", RegexOptions.IgnoreCase)]
+    // Wow, WowClassic, and their B (beta, such as WoW Forever) and T (PTR) builds.
+    [GeneratedRegex(@"^Wow(Classic)?[BT]?$", RegexOptions.IgnoreCase)]
     private static partial Regex ClientName();
 
     public static bool IsClientName(string processName) => ClientName().IsMatch(processName);

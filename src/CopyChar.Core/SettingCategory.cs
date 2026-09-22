@@ -20,11 +20,14 @@ public sealed record SettingCategory(string Label, IReadOnlyList<string> Files)
     public static readonly SettingCategory Chat =
         new("Chat windows and text-to-speech", ["chat-cache.txt", "tts-cache-character.txt"]);
 
+    public static readonly SettingCategory ClickBindings =
+        new("Click bindings", ["click-bindings-cache.txt"]);
+
     public static readonly SettingCategory AddOnList =
         new("Enabled addons", ["AddOns.txt"]);
 
     public static IReadOnlyList<SettingCategory> All { get; } =
-        [GameOptions, KeyBindings, Macros, Interface, Chat, AddOnList];
+        [GameOptions, KeyBindings, Macros, Interface, Chat, ClickBindings, AddOnList];
 
     public override string ToString() => Label;
 }

@@ -1,6 +1,8 @@
 # CopyChar
 
-Windows tool that copies the settings of a World of Warcraft Classic character to other characters of the same account: game options, interface layout, chat windows, character-specific macros and key bindings, enabled addons and addon settings.
+Windows tool that copies the settings of a World of Warcraft Classic character (Anniversary, Era, or the new WoW Forever) to other characters of the same account: game options, interface layout, chat windows, character-specific macros and key bindings, enabled addons and addon settings.
+
+![CopyChar main window](docs/images/main-window.png)
 
 ## Problem
 
@@ -27,7 +29,7 @@ dotnet test
 ## Usage
 
 1. Quit the game.
-2. Start `CopyChar.exe`. The `World of Warcraft` folder is looked up in `Program Files`; otherwise pick it with **Browse**. The version played last (for example anniversary or classic_era) is selected by default.
+2. Start `CopyChar.exe`. The `World of Warcraft` folder is looked up in `Program Files`; otherwise pick it with **Browse**. The version played last (for example anniversary, classic_era, or classic_beta for WoW Forever) is selected by default.
 3. Pick the source character, check the settings to copy, then the target characters.
 4. Click **Copy** and confirm.
 
@@ -42,6 +44,7 @@ Files copied per category:
 | Character macros | `macros-cache.txt` |
 | Interface layout and Edit Mode | `layout-local.txt`, `edit-mode-cache-character.txt` |
 | Chat windows and text-to-speech | `chat-cache.txt`, `tts-cache-character.txt` |
+| Click bindings (WoW Forever only) | `click-bindings-cache.txt` |
 | Enabled addons | `AddOns.txt` |
 | Addon settings | `SavedVariables\<Addon>.lua`, picked per addon |
 
@@ -61,7 +64,8 @@ A file missing from the source is skipped and reported in the log; it is never d
 - **Account-wide key bindings and macros are already shared.** Those saved at account level (`bindings-cache.wtf`, `macros-cache.txt` next to the realm folders) are common to all characters and are out of scope.
 - **Character-specific key bindings not checked in game.** They are only copied when the source has some. I have not checked that the target switches to character-specific bindings on its own.
 - **Server sync behavior is inferred, not documented.** The handling of settings sync comes from reading the `cache.md5` format, not from official documentation. A client update may change it.
-- **Game detection by process name** (`Wow`, `WowClassic`). If the path of one of these processes cannot be read, the copy is refused to be safe.
+- **Game detection by process name** (`Wow`, `WowClassic` and their B and T variants, such as `WowB` for the WoW Forever beta). If the path of one of these processes cannot be read, the copy is refused to be safe.
+- **WoW Forever is still in beta.** Its files were checked on the current beta build and may change before release.
 - **Backups are never purged**; delete them by hand from **Open folder**.
 - **Write access.** If the game is installed in a protected folder without write access for the user, the copy fails with an access denied message; run CopyChar as administrator in that case.
 - The confirmation dialogs use the standard Windows message box, so their Yes/No buttons follow the Windows display language.

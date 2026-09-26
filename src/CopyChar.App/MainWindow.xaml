@@ -4,8 +4,11 @@
         Title="CopyChar" Height="660" Width="1000" MinHeight="500" MinWidth="800"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
+        <!-- A TextBlock keeps underscores visible: as plain Content they are read as access keys (Blizzard_RaidUI). -->
         <DataTemplate x:Key="CheckItem">
-            <CheckBox Content="{Binding Item}" IsChecked="{Binding IsSelected}" />
+            <CheckBox IsChecked="{Binding IsSelected}">
+                <TextBlock Text="{Binding Item}" />
+            </CheckBox>
         </DataTemplate>
     </Window.Resources>
 

@@ -80,7 +80,7 @@ public sealed class MainViewModel : ObservableObject
     } = [];
 
     public IReadOnlyList<Selectable<SettingCategory>> Categories { get; } =
-        SettingCategory.All.Select(c => new Selectable<SettingCategory>(c, isSelected: true)).ToList();
+        SettingCategory.PerCharacter.Select(c => new Selectable<SettingCategory>(c, isSelected: true)).ToList();
 
     public IReadOnlyList<Selectable<string>> Addons
     {
@@ -127,9 +127,8 @@ public sealed class MainViewModel : ObservableObject
 
         try
         {
-            var backups = new CharacterCopier(_backups).Execute(plan);
-            foreach (var (target, backup) in plan.Targets.Zip(backups))
-                Write($"Copied to {target} (backup: {Path.GetFileName(backup.ZipPath)})");
+            foreach (var backup in new CharacterCopier(_backups).Execute(plan))
+                Write($"Copied to {backup.Label} (backup: {Path.GetFileName(backup.ZipPath)})");
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {

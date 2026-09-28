@@ -14,5 +14,7 @@ public sealed record Character(string Account, string Realm, string Name, string
             folderPath);
     }
 
+    public string AccountFolder => Path.GetDirectoryName(Path.GetDirectoryName(FolderPath))!;
+
     public override string ToString() => $"{Name} ({Realm})";
 }

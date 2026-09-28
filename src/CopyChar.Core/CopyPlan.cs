@@ -1,11 +1,15 @@
 namespace CopyChar.Core;
 
 // Files are relative to a character folder, so the same list applies to every target.
-// SkippedFiles were selected but do not exist in the source folder.
+// AccountFiles are relative to an account folder and only go to TargetAccounts: the accounts of
+// the targets other than the source account, whose characters already share these files.
+// SkippedFiles were selected but do not exist in the source folders.
 public sealed record CopyPlan(
     Character Source,
     IReadOnlyList<Character> Targets,
     IReadOnlyList<string> Files,
+    IReadOnlyList<string> TargetAccounts,
+    IReadOnlyList<string> AccountFiles,
     IReadOnlyList<string> SkippedFiles)
 {
     public static CopyPlan Create(
@@ -20,15 +24,39 @@ public sealed record CopyPlan(
         if (targetList.Contains(source))
             throw new ArgumentException("The source character cannot also be a target.", nameof(targets));
 
-        var selected = categories
+        var categoryList = categories.ToList();
+        var characterFiles = categoryList
+            .Where(c => !c.AccountWide)
             .SelectMany(c => c.Files)
             .Concat(addons.Select(AddonSavedVariables.FileName))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
+        var accountFiles = categoryList
+            .Where(c => c.AccountWide)
+            .SelectMany(c => c.Files)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
-        var existing = selected.Where(f => File.Exists(Path.Combine(source.FolderPath, f))).ToList();
-        var skipped = selected.Except(existing).ToList();
+        var otherAccounts = targetList
+            .Select(t => t.AccountFolder)
+            .Where(a => !a.Equals(source.AccountFolder, StringComparison.OrdinalIgnoreCase))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (otherAccounts.Count == 0)
+            accountFiles = [];
 
-        return new CopyPlan(source, targetList, existing, skipped);
+        var existing = characterFiles.Where(f => File.Exists(Path.Combine(source.FolderPath, f))).ToList();
+        var existingAccount = accountFiles.Where(f => File.Exists(Path.Combine(source.AccountFolder, f))).ToList();
+        var skipped = characterFiles.Except(existing)
+            .Concat(accountFiles.Except(existingAccount).Select(f => $"{f} (account)"))
+            .ToList();
+
+        return new CopyPlan(
+            source,
+            targetList,
+            existing,
+            existingAccount.Count == 0 ? [] : otherAccounts,
+            existingAccount,
+            skipped);
     }
 }

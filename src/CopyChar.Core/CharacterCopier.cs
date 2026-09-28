@@ -2,22 +2,36 @@ namespace CopyChar.Core;
 
 public sealed class CharacterCopier(BackupStore backups)
 {
-    // Returns the backup made for each target, in the order of plan.Targets.
+    // Returns one backup per folder written to: target accounts first, then target characters.
     public IReadOnlyList<Backup> Execute(CopyPlan plan)
     {
         var made = new List<Backup>();
-        foreach (var target in plan.Targets)
-        {
-            made.Add(backups.Create(target));
 
-            foreach (var file in plan.Files)
+        foreach (var account in plan.TargetAccounts)
+        {
+            made.Add(backups.CreateForAccount(account));
+            CopyFiles(plan.Source.AccountFolder, account, plan.AccountFiles);
+        }
+
+        if (plan.Files.Count > 0)
+        {
+            foreach (var target in plan.Targets)
             {
-                var destination = Path.Combine(target.FolderPath, file);
-                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-                File.Copy(Path.Combine(plan.Source.FolderPath, file), destination, overwrite: true);
+                made.Add(backups.Create(target));
+                CopyFiles(plan.Source.FolderPath, target.FolderPath, plan.Files);
             }
         }
 
         return made;
+    }
+
+    private static void CopyFiles(string sourceFolder, string targetFolder, IEnumerable<string> files)
+    {
+        foreach (var file in files)
+        {
+            var destination = Path.Combine(targetFolder, file);
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            File.Copy(Path.Combine(sourceFolder, file), destination, overwrite: true);
+        }
     }
 }

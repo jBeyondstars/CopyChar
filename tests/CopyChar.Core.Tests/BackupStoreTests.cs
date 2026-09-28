@@ -19,8 +19,8 @@ public class BackupStoreTests
         var entries = archive.Entries.Select(e => e.FullName.Replace('\\', '/')).ToList();
         Assert.Contains("config-cache.wtf", entries);
         Assert.Contains("SavedVariables/Questie.lua", entries);
-        Assert.Equal(character.FolderPath, backup.CharacterFolder);
-        Assert.Equal("Alpha (Realm)", backup.CharacterLabel);
+        Assert.Equal(character.FolderPath, backup.FolderPath);
+        Assert.Equal("Alpha (Realm)", backup.Label);
     }
 
     [Fact]
@@ -54,6 +54,27 @@ public class BackupStoreTests
         store.Restore(current);
 
         Assert.Equal("after", File.ReadAllText(config));
+    }
+
+    [Fact]
+    public void Account_restore_only_touches_files_at_the_root_of_the_account()
+    {
+        using var wtf = new TempWtf();
+        var bindings = wtf.AddAccountFile("111#1", "bindings-cache.wtf", "before");
+        var characterConfig = wtf.AddCharacterFile("111#1", "Realm", "Alpha", "config-cache.wtf", "before");
+        var store = new BackupStore(Path.Combine(wtf.Root, "backups"));
+        var backup = store.CreateForAccount(wtf.AccountPath("111#1"));
+        File.WriteAllText(bindings, "after");
+        var added = wtf.AddAccountFile("111#1", "macros-cache.txt");
+        File.WriteAllText(characterConfig, "after");
+
+        store.Restore(backup);
+
+        Assert.Equal("before", File.ReadAllText(bindings));
+        Assert.False(File.Exists(added));
+        Assert.Equal("after", File.ReadAllText(characterConfig));
+        Assert.Equal([bindings], Directory.GetFiles(wtf.AccountPath("111#1")));
+        Assert.Equal("Account 111#1", backup.Label);
     }
 
     [Fact]

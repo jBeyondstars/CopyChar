@@ -39,6 +39,6 @@ public class CharacterCopierTests
         using var archive = ZipFile.OpenRead(backup.ZipPath);
         using var reader = new StreamReader(archive.GetEntry("config-cache.wtf")!.Open());
         Assert.Equal("target config", reader.ReadToEnd());
-        Assert.Equal(target.FolderPath, backup.CharacterFolder);
+        Assert.Equal(target.FolderPath, backup.FolderPath);
     }
 }

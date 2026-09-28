@@ -76,8 +76,8 @@
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Date" Width="150" DisplayMemberBinding="{Binding CreatedAt, StringFormat='yyyy-MM-dd HH:mm:ss'}" />
-                                <GridViewColumn Header="Character" Width="220" DisplayMemberBinding="{Binding CharacterLabel}" />
-                                <GridViewColumn Header="Folder" Width="520" DisplayMemberBinding="{Binding CharacterFolder}" />
+                                <GridViewColumn Header="Backup of" Width="220" DisplayMemberBinding="{Binding Label}" />
+                                <GridViewColumn Header="Folder" Width="520" DisplayMemberBinding="{Binding FolderPath}" />
                             </GridView>
                         </ListView.View>
                     </ListView>

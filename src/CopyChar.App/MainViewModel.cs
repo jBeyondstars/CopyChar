@@ -156,13 +156,13 @@ public sealed class MainViewModel : ObservableObject
     private void Restore()
     {
         var backup = SelectedBackup!;
-        if (GameProcess.IsRunning(backup.CharacterFolder))
+        if (GameProcess.IsRunning(backup.FolderPath))
         {
             Write("The game is running: quit it before restoring, otherwise it will overwrite the files when it closes.");
             return;
         }
 
-        var question = $"Restore {backup.CharacterLabel} to its state of {backup.CreatedAt:yyyy-MM-dd HH:mm}?\n\n"
+        var question = $"Restore {backup.Label} to its state of {backup.CreatedAt:yyyy-MM-dd HH:mm}?\n\n"
             + "The current state is backed up first, so the restore can be undone.";
         if (!_confirm(question))
             return;
@@ -171,8 +171,8 @@ public sealed class MainViewModel : ObservableObject
         {
             var current = _backups.Restore(backup);
             Write(current is null
-                ? $"Restored {backup.CharacterLabel} ({backup.CreatedAt:yyyy-MM-dd HH:mm})"
-                : $"Restored {backup.CharacterLabel} ({backup.CreatedAt:yyyy-MM-dd HH:mm}), previous state backed up: {Path.GetFileName(current.ZipPath)}");
+                ? $"Restored {backup.Label} ({backup.CreatedAt:yyyy-MM-dd HH:mm})"
+                : $"Restored {backup.Label} ({backup.CreatedAt:yyyy-MM-dd HH:mm}), previous state backed up: {Path.GetFileName(current.ZipPath)}");
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {

@@ -18,6 +18,11 @@ public sealed class TempWtf : IDisposable
         return path;
     }
 
+    public string AccountPath(string account) => Path.Combine(WtfPath, "Account", account);
+
+    public string AddAccountFile(string account, string file, string content = "") =>
+        AddFile(Path.Combine(AccountPath(account), file), content);
+
     public string AddCharacterFile(string account, string realm, string name, string file, string content = "")
     {
         var path = Path.Combine(CharacterPath(account, realm, name), file);

@@ -124,7 +124,7 @@ public sealed class MainViewModel : ObservableObject
             Write($"Account settings skipped: every target is on account {plan.Source.Account}, like the source.");
         }
 
-        if (plan.Files.Count == 0 && plan.AccountFiles.Count == 0)
+        if (plan.Files.Count == 0 && plan.AccountFiles.Count == 0 && plan.BindingsFromSourceAccount.Count == 0)
         {
             Write("Nothing to copy.");
             return;
@@ -194,6 +194,11 @@ public sealed class MainViewModel : ObservableObject
         var lines = new List<string>();
         if (plan.Files.Count > 0)
             lines.Add($"Copy {plan.Files.Count} file(s) from {plan.Source} to {plan.Targets.Count} character(s).");
+        if (plan.BindingsFromSourceAccount.Count > 0)
+        {
+            var names = string.Join(", ", plan.BindingsFromSourceAccount);
+            lines.Add($"{plan.Source} uses its account key bindings: they replace the character-specific bindings of {names}.");
+        }
         if (plan.AccountFiles.Count > 0)
         {
             var accounts = string.Join(", ", plan.TargetAccounts.Select(Path.GetFileName));

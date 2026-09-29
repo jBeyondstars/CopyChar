@@ -68,6 +68,26 @@ public class CopyPlanTests
     }
 
     [Fact]
+    public void Gives_source_account_bindings_to_targets_with_their_own_bindings()
+    {
+        using var wtf = new TempWtf();
+        wtf.AddAccountFile("111#1", "bindings-cache.wtf");
+        wtf.AddCharacterFile("111#1", "Realm", "Source", "config-cache.wtf");
+        wtf.AddCharacterFile("111#2", "Realm", "OwnBindings", "bindings-cache.wtf");
+        wtf.AddCharacterFile("111#2", "Realm", "AccountBindings", "config-cache.wtf");
+
+        var plan = CopyPlan.Create(
+            wtf.Character("Source"),
+            [wtf.Character("OwnBindings"), wtf.Character("AccountBindings")],
+            [SettingCategory.KeyBindings],
+            []);
+
+        Assert.Equal([wtf.Character("OwnBindings")], plan.BindingsFromSourceAccount);
+        Assert.Empty(plan.Files);
+        Assert.Empty(plan.SkippedFiles);
+    }
+
+    [Fact]
     public void Ignores_account_settings_when_every_target_shares_the_source_account()
     {
         using var wtf = new TempWtf();

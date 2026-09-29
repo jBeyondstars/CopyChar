@@ -13,13 +13,16 @@ public sealed class CharacterCopier(BackupStore backups)
             CopyFiles(plan.Source.AccountFolder, account, plan.AccountFiles);
         }
 
-        if (plan.Files.Count > 0)
+        foreach (var target in plan.Targets)
         {
-            foreach (var target in plan.Targets)
-            {
-                made.Add(backups.Create(target));
-                CopyFiles(plan.Source.FolderPath, target.FolderPath, plan.Files);
-            }
+            var bindingsFromAccount = plan.BindingsFromSourceAccount.Contains(target);
+            if (plan.Files.Count == 0 && !bindingsFromAccount)
+                continue;
+
+            made.Add(backups.Create(target));
+            CopyFiles(plan.Source.FolderPath, target.FolderPath, plan.Files);
+            if (bindingsFromAccount)
+                CopyFiles(plan.Source.AccountFolder, target.FolderPath, [CopyPlan.BindingsFile]);
         }
 
         return made;

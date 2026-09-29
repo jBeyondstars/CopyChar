@@ -43,6 +43,22 @@ public class CharacterCopierTests
     }
 
     [Fact]
+    public void Writes_source_account_bindings_over_target_character_bindings()
+    {
+        using var wtf = new TempWtf();
+        wtf.AddAccountFile("111#1", "bindings-cache.wtf", "source account bindings");
+        wtf.AddCharacterFile("111#1", "Realm", "Source", "config-cache.wtf");
+        var targetBindings = wtf.AddCharacterFile("111#2", "Realm", "Target", "bindings-cache.wtf", "target bindings");
+        var plan = CopyPlan.Create(
+            wtf.Character("Source"), [wtf.Character("Target")], [SettingCategory.KeyBindings], []);
+
+        var backup = Assert.Single(new CharacterCopier(new BackupStore(Path.Combine(wtf.Root, "backups"))).Execute(plan));
+
+        Assert.Equal("source account bindings", File.ReadAllText(targetBindings));
+        Assert.False(backup.IsAccount);
+    }
+
+    [Fact]
     public void Copies_account_files_to_the_target_account_after_backing_it_up()
     {
         using var wtf = new TempWtf();

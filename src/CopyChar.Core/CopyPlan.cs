@@ -3,6 +3,8 @@ namespace CopyChar.Core;
 // Files are relative to a character folder, so the same list applies to every target.
 // AccountFiles are relative to an account folder and only go to TargetAccounts: the accounts of
 // the targets other than the source account, whose characters already share these files.
+// BindingsFromSourceAccount are targets with character-specific key bindings that receive the
+// account bindings of a source without its own: they would otherwise keep theirs.
 // SkippedFiles were selected but do not exist in the source folders.
 public sealed record CopyPlan(
     Character Source,
@@ -10,8 +12,11 @@ public sealed record CopyPlan(
     IReadOnlyList<string> Files,
     IReadOnlyList<string> TargetAccounts,
     IReadOnlyList<string> AccountFiles,
+    IReadOnlyList<Character> BindingsFromSourceAccount,
     IReadOnlyList<string> SkippedFiles)
 {
+    public const string BindingsFile = "bindings-cache.wtf";
+
     public static CopyPlan Create(
         Character source,
         IEnumerable<Character> targets,
@@ -47,6 +52,16 @@ public sealed record CopyPlan(
 
         var existing = characterFiles.Where(f => File.Exists(Path.Combine(source.FolderPath, f))).ToList();
         var existingAccount = accountFiles.Where(f => File.Exists(Path.Combine(source.AccountFolder, f))).ToList();
+
+        List<Character> bindingsFromAccount =
+            characterFiles.Contains(BindingsFile, StringComparer.OrdinalIgnoreCase)
+            && !File.Exists(Path.Combine(source.FolderPath, BindingsFile))
+            && File.Exists(Path.Combine(source.AccountFolder, BindingsFile))
+                ? targetList.Where(t => File.Exists(Path.Combine(t.FolderPath, BindingsFile))).ToList()
+                : [];
+        if (bindingsFromAccount.Count > 0)
+            characterFiles.Remove(BindingsFile);
+
         var skipped = characterFiles.Except(existing)
             .Concat(accountFiles.Except(existingAccount).Select(f => $"{f} (account)"))
             .ToList();
@@ -57,6 +72,7 @@ public sealed record CopyPlan(
             existing,
             existingAccount.Count == 0 ? [] : otherAccounts,
             existingAccount,
+            bindingsFromAccount,
             skipped);
     }
 }

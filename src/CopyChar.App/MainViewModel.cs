@@ -82,6 +82,10 @@ public sealed class MainViewModel : ObservableObject
     public IReadOnlyList<Selectable<SettingCategory>> Categories { get; } =
         SettingCategory.PerCharacter.Select(c => new Selectable<SettingCategory>(c, isSelected: true)).ToList();
 
+    // Unchecked by default: they overwrite settings shared by every character of the target account.
+    public IReadOnlyList<Selectable<SettingCategory>> AccountCategories { get; } =
+        SettingCategory.PerAccount.Select(c => new Selectable<SettingCategory>(c)).ToList();
+
     public IReadOnlyList<Selectable<string>> Addons
     {
         get;
@@ -95,7 +99,7 @@ public sealed class MainViewModel : ObservableObject
     private bool CanCopy() =>
         Source is not null
         && Targets.Any(t => t.IsSelected)
-        && (Categories.Any(c => c.IsSelected) || Addons.Any(a => a.IsSelected));
+        && (Categories.Any(c => c.IsSelected) || AccountCategories.Any(c => c.IsSelected) || Addons.Any(a => a.IsSelected));
 
     private void Copy()
     {
@@ -108,21 +112,25 @@ public sealed class MainViewModel : ObservableObject
         var plan = CopyPlan.Create(
             Source!,
             Selected(Targets),
-            Selected(Categories),
+            Selected(Categories).Concat(Selected(AccountCategories)),
             Selected(Addons));
 
         foreach (var file in plan.SkippedFiles)
             Write($"Skipped, not found for {plan.Source}: {file}");
 
-        if (plan.Files.Count == 0)
+        if (AccountCategories.Any(c => c.IsSelected)
+            && plan.Targets.All(t => t.Account == plan.Source.Account))
+        {
+            Write($"Account settings skipped: every target is on account {plan.Source.Account}, like the source.");
+        }
+
+        if (plan.Files.Count == 0 && plan.AccountFiles.Count == 0)
         {
             Write("Nothing to copy.");
             return;
         }
 
-        var question = $"Copy {plan.Files.Count} file(s) from {plan.Source} to {plan.Targets.Count} character(s)?\n\n"
-            + "Each target character is backed up before being changed.";
-        if (!_confirm(question))
+        if (!_confirm(Describe(plan)))
             return;
 
         try
@@ -179,6 +187,22 @@ public sealed class MainViewModel : ObservableObject
         }
 
         Backups = _backups.List();
+    }
+
+    private static string Describe(CopyPlan plan)
+    {
+        var lines = new List<string>();
+        if (plan.Files.Count > 0)
+            lines.Add($"Copy {plan.Files.Count} file(s) from {plan.Source} to {plan.Targets.Count} character(s).");
+        if (plan.AccountFiles.Count > 0)
+        {
+            var accounts = string.Join(", ", plan.TargetAccounts.Select(Path.GetFileName));
+            lines.Add($"Copy {plan.AccountFiles.Count} account file(s) from account {plan.Source.Account} to {accounts}. "
+                + "They apply to every character of those accounts.");
+        }
+        lines.Add("");
+        lines.Add("Every folder is backed up before being changed. Continue?");
+        return string.Join("\n", lines);
     }
 
     private static List<T> Selected<T>(IEnumerable<Selectable<T>> items) =>

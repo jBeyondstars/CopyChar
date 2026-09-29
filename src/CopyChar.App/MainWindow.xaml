@@ -1,7 +1,7 @@
 <Window x:Class="CopyChar.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="CopyChar" Height="660" Width="1000" MinHeight="500" MinWidth="800"
+        Title="CopyChar" Height="740" Width="1000" MinHeight="600" MinWidth="800"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <!-- A TextBlock keeps underscores visible: as plain Content they are read as access keys (Blizzard_RaidUI). -->
@@ -10,6 +10,24 @@
                 <TextBlock Text="{Binding Item}" />
             </CheckBox>
         </DataTemplate>
+
+        <CollectionViewSource x:Key="CharactersByAccount" Source="{Binding Characters}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="Account" />
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+        <CollectionViewSource x:Key="TargetsByAccount" Source="{Binding Targets}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="Item.Account" />
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+        <GroupStyle x:Key="AccountGroup">
+            <GroupStyle.HeaderTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Name, StringFormat='Account {0}'}" Foreground="DimGray" Margin="2,6,0,2" />
+                </DataTemplate>
+            </GroupStyle.HeaderTemplate>
+        </GroupStyle>
     </Window.Resources>
 
     <DockPanel Margin="12">
@@ -45,14 +63,22 @@
                         </Grid.ColumnDefinitions>
 
                         <GroupBox Header="1. Source character">
-                            <ListBox ItemsSource="{Binding Characters}" SelectedItem="{Binding Source}" BorderThickness="0" />
+                            <ListBox ItemsSource="{Binding Source={StaticResource CharactersByAccount}}" SelectedItem="{Binding Source}" BorderThickness="0">
+                                <ListBox.GroupStyle>
+                                    <StaticResource ResourceKey="AccountGroup" />
+                                </ListBox.GroupStyle>
+                            </ListBox>
                         </GroupBox>
 
                         <GroupBox Grid.Column="2" Header="2. Settings to copy">
                             <DockPanel>
                                 <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding Categories}"
                                               ItemTemplate="{StaticResource CheckItem}" Margin="4" />
-                                <TextBlock DockPanel.Dock="Top" Text="Character-specific addon settings" Margin="4,12,4,0" FontWeight="SemiBold" />
+                                <TextBlock DockPanel.Dock="Top" Text="Account settings" Margin="4,12,4,0" FontWeight="SemiBold" />
+                                <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="4,2,4,4" Foreground="DimGray"
+                                           Text="Only copied to targets on another account, and applied to every character of that account." />
+                                <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding AccountCategories}"
+                                              ItemTemplate="{StaticResource CheckItem}" Margin="4" />                                <TextBlock DockPanel.Dock="Top" Text="Character-specific addon settings" Margin="4,12,4,0" FontWeight="SemiBold" />
                                 <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="4,2,4,4" Foreground="DimGray"
                                            Text="Some addons also keep character progress (quests, guides) in these files." />
                                 <ListBox ItemsSource="{Binding Addons}" ItemTemplate="{StaticResource CheckItem}" BorderThickness="0" />
@@ -60,7 +86,11 @@
                         </GroupBox>
 
                         <GroupBox Grid.Column="4" Header="3. Target characters">
-                            <ListBox ItemsSource="{Binding Targets}" ItemTemplate="{StaticResource CheckItem}" BorderThickness="0" />
+                            <ListBox ItemsSource="{Binding Source={StaticResource TargetsByAccount}}" ItemTemplate="{StaticResource CheckItem}" BorderThickness="0">
+                                <ListBox.GroupStyle>
+                                    <StaticResource ResourceKey="AccountGroup" />
+                                </ListBox.GroupStyle>
+                            </ListBox>
                         </GroupBox>
                     </Grid>
                 </DockPanel>

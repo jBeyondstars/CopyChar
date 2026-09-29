@@ -7,8 +7,9 @@ A copy overwrites files of the target with no way back in game. A selection mist
 ## Decision
 
 - Before writing to a target, the whole character folder is zipped into `%LOCALAPPDATA%\CopyChar\backups`.
-- The zip contains a `.copychar-origin` entry with the original path, so a backup can be restored without asking for the folder again.
-- A restore first backs up the current state, deletes the folder and extracts the zip. The folder goes back exactly to its backed up state, including the absence of files added since.
+- When account settings are copied, the files at the root of the target account folder are zipped as well, without its realm and character folders, which have their own backups.
+- The zip contains a `.copychar-origin` (or `.copychar-account-origin`) entry with the original path, so a backup can be restored without asking for the folder again.
+- A restore first backs up the current state, deletes the folder (only the root files for an account) and extracts the zip. The folder goes back exactly to its backed up state, including the absence of files added since.
 
 ## Consequences
 

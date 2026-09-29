@@ -1,6 +1,6 @@
 # CopyChar
 
-Windows tool that copies the settings of a World of Warcraft Classic character (Anniversary, Era, or the new WoW Forever) to other characters of the same account: game options, interface layout, chat windows, character-specific macros and key bindings, enabled addons and addon settings.
+Windows tool that copies the settings of a World of Warcraft Classic character (Anniversary, Era, or the new WoW Forever) to other characters: game options, interface layout, chat windows, character-specific macros and key bindings, enabled addons and addon settings. Between two accounts, it can also copy the account-wide key bindings, general macros, account options and Edit Mode layouts.
 
 ![CopyChar main window](docs/images/main-window.png)
 
@@ -48,6 +48,16 @@ Files copied per category:
 | Enabled addons | `AddOns.txt` |
 | Addon settings | `SavedVariables\<Addon>.lua`, picked per addon |
 
+Account settings, copied from the source account to the accounts of the targets, only when a target is on another account:
+
+| Category | Files at the root of `WTF\Account\<account>\` |
+|---|---|
+| Key bindings | `bindings-cache.wtf` |
+| General macros | `macros-cache.txt` |
+| Account options | `config-cache.wtf` |
+| Edit Mode layouts | `edit-mode-cache-account.txt` |
+| Text-to-speech | `tts-cache-account.txt` |
+
 A file missing from the source is skipped and reported in the log; it is never deleted from the target.
 
 ## Design choices
@@ -55,13 +65,14 @@ A file missing from the source is skipped and reported in the log; it is never d
 - **`cache.md5` is never copied.** This file holds, for each settings file, its MD5 and the time of the last sync with the server. Keeping the target's own file makes the copied files look locally modified. Details in [docs/adr/0002](docs/adr/0002-keep-target-cache-md5.md).
 - **No copy or restore while the game is running.** The client rewrites the files of the logged character when it logs out or exits, which would silently undo the copy.
 - **One zip backup per target and per copy**, in `%LOCALAPPDATA%\CopyChar\backups`. A restore puts the folder back exactly as it was backed up, after backing up its current state. Details in [docs/adr/0003](docs/adr/0003-back-up-before-writing.md).
+- **Account settings unchecked by default and only sent to other accounts.** Most key bindings, general macros and Edit Mode layouts are stored per account, so copying a character folder to another account leaves them behind. They also apply to every character of the target account, so they are opt-in. Details in [docs/adr/0004](docs/adr/0004-copy-account-settings-across-accounts.md).
 - **Addon settings unchecked by default.** Some addons (guides, quest trackers) keep the character's progress in these files, which you usually do not want to copy.
 - **Logic separated from the interface.** `CopyChar.Core` does not depend on WPF and carries the tests; `CopyChar.App` only handles display. Details in [docs/adr/0001](docs/adr/0001-wpf-with-separate-core-library.md).
 
 ## Known limitations
 
 - **Account-wide addon profiles are not copied.** Many AceDB based addons (TomTom, Questie, RXPGuides...) store their settings in `WTF\Account\<account>\SavedVariables`, with a `profileKeys` table mapping each character to a profile. CopyChar does not edit these files: for these addons, pick the profile in the addon itself.
-- **Account-wide key bindings and macros are already shared.** Those saved at account level (`bindings-cache.wtf`, `macros-cache.txt` next to the realm folders) are common to all characters and are out of scope.
+- **Character settings alone are partial across accounts.** The character Edit Mode file only stores which layout is active, and most key bindings live at account level: without the account settings, the target keeps the layouts and bindings of its own account.
 - **Character-specific key bindings not checked in game.** They are only copied when the source has some. I have not checked that the target switches to character-specific bindings on its own.
 - **Server sync behavior is inferred, not documented.** The handling of settings sync comes from reading the `cache.md5` format, not from official documentation. A client update may change it.
 - **Game detection by process name** (`Wow`, `WowClassic` and their B and T variants, such as `WowB` for the WoW Forever beta). If the path of one of these processes cannot be read, the copy is refused to be safe.

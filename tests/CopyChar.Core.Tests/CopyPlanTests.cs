@@ -88,6 +88,27 @@ public class CopyPlanTests
     }
 
     [Fact]
+    public void Lists_in_game_save_steps_only_for_copied_synced_settings()
+    {
+        using var wtf = new TempWtf();
+        wtf.AddAccountFile("111#1", "bindings-cache.wtf");
+        wtf.AddCharacterFile("111#1", "Realm", "Source", "config-cache.wtf");
+        wtf.AddCharacterFile("111#1", "Realm", "Source", "AddOns.txt");
+        wtf.AddCharacterFile("111#2", "Realm", "Target", "config-cache.wtf");
+
+        var plan = CopyPlan.Create(
+            wtf.Character("Source"),
+            [wtf.Character("Target")],
+            [SettingCategory.GameOptions, SettingCategory.Macros, SettingCategory.AddOnList,
+             SettingCategory.AccountKeyBindings, SettingCategory.AccountOptions],
+            []);
+
+        Assert.Equal(
+            [SettingCategory.GameOptions.InGameSaveStep, SettingCategory.AccountKeyBindings.InGameSaveStep],
+            plan.InGameSaveSteps);
+    }
+
+    [Fact]
     public void Ignores_account_settings_when_every_target_shares_the_source_account()
     {
         using var wtf = new TempWtf();

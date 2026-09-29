@@ -12,12 +12,15 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        _viewModel = new MainViewModel(AppStorage.GuessInstallPath(), Confirm);
+        _viewModel = new MainViewModel(AppStorage.GuessInstallPath(), Confirm, Inform);
         DataContext = _viewModel;
     }
 
     private bool Confirm(string question) =>
         MessageBox.Show(this, question, "CopyChar", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
+
+    private void Inform(string message) =>
+        MessageBox.Show(this, message, "CopyChar", MessageBoxButton.OK, MessageBoxImage.Information);
 
     private void Browse_Click(object sender, RoutedEventArgs e)
     {

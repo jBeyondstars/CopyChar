@@ -6,6 +6,7 @@ namespace CopyChar.Core;
 // BindingsFromSourceAccount are targets with character-specific key bindings that receive the
 // account bindings of a source without its own: they would otherwise keep theirs.
 // SkippedFiles were selected but do not exist in the source folders.
+// InGameSaveSteps tell the player how to make the game keep the copied settings synced with the server.
 public sealed record CopyPlan(
     Character Source,
     IReadOnlyList<Character> Targets,
@@ -13,7 +14,8 @@ public sealed record CopyPlan(
     IReadOnlyList<string> TargetAccounts,
     IReadOnlyList<string> AccountFiles,
     IReadOnlyList<Character> BindingsFromSourceAccount,
-    IReadOnlyList<string> SkippedFiles)
+    IReadOnlyList<string> SkippedFiles,
+    IReadOnlyList<string> InGameSaveSteps)
 {
     public const string BindingsFile = "bindings-cache.wtf";
 
@@ -66,6 +68,14 @@ public sealed record CopyPlan(
             .Concat(accountFiles.Except(existingAccount).Select(f => $"{f} (account)"))
             .ToList();
 
+        var copiedCharacterFiles = bindingsFromAccount.Count > 0 ? [.. existing, BindingsFile] : existing;
+        var saveSteps = categoryList
+            .Where(c => c.InGameSaveStep is not null)
+            .Where(c => c.Files.Intersect(c.AccountWide ? existingAccount : copiedCharacterFiles).Any())
+            .Select(c => c.InGameSaveStep!)
+            .Distinct()
+            .ToList();
+
         return new CopyPlan(
             source,
             targetList,
@@ -73,6 +83,7 @@ public sealed record CopyPlan(
             existingAccount.Count == 0 ? [] : otherAccounts,
             existingAccount,
             bindingsFromAccount,
-            skipped);
+            skipped,
+            saveSteps);
     }
 }

@@ -7,11 +7,13 @@ namespace CopyChar.App;
 public sealed class MainViewModel : ObservableObject
 {
     private readonly Func<string, bool> _confirm;
+    private readonly Action<string> _inform;
     private readonly BackupStore _backups = new(AppStorage.BackupFolder);
 
-    public MainViewModel(string installPath, Func<string, bool> confirm)
+    public MainViewModel(string installPath, Func<string, bool> confirm, Action<string> inform)
     {
         _confirm = confirm;
+        _inform = inform;
         CopyCommand = new RelayCommand(Copy, CanCopy);
         RestoreCommand = new RelayCommand(Restore, () => SelectedBackup is not null);
         InstallPath = installPath;
@@ -137,6 +139,14 @@ public sealed class MainViewModel : ObservableObject
         {
             foreach (var backup in new CharacterCopier(_backups).Execute(plan))
                 Write($"Copied to {backup.Label} (backup: {Path.GetFileName(backup.ZipPath)})");
+
+            if (plan.InGameSaveSteps.Count > 0)
+            {
+                _inform("Copy done. The game only saves a setting on the server once it changes in game, "
+                    + "and restores the server copy of the others at a later login.\n\n"
+                    + "Log in with each target character and, before logging out:\n\n"
+                    + string.Join("\n", plan.InGameSaveSteps.Select(s => "- " + s)));
+            }
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {

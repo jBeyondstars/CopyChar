@@ -32,6 +32,7 @@ dotnet test
 2. Start `CopyChar.exe`. The `World of Warcraft` folder is looked up in `Program Files`; otherwise pick it with **Browse**. The version played last (for example anniversary, classic_era, or classic_beta for WoW Forever) is selected by default.
 3. Pick the source character, check the settings to copy, then the target characters.
 4. Click **Copy** and confirm.
+5. Log in with each target character and follow the steps shown after the copy (change a setting and set it back, for each kind of setting copied). Without them, the game restores its server copy of these settings at a later login.
 
 The **Backups** tab lists the backups and can put a character back in the state of a backup.
 
@@ -62,7 +63,7 @@ A file missing from the source is skipped and reported in the log; it is never d
 
 ## Design choices
 
-- **`cache.md5` is never copied.** This file holds, for each settings file, its MD5 and the time of the last sync with the server. Keeping the target's own file makes the copied files look locally modified. Details in [docs/adr/0002](docs/adr/0002-keep-target-cache-md5.md).
+- **`cache.md5` is never copied.** This file holds, for each settings file, its MD5 and the time of the last sync with the server. Keeping the target's own file makes the game use the copied files, but it only saves them on the server once they change in game, hence step 5 above. Details in [docs/adr/0002](docs/adr/0002-keep-target-cache-md5.md).
 - **No copy or restore while the game is running.** The client rewrites the files of the logged character when it logs out or exits, which would silently undo the copy.
 - **One zip backup per target and per copy**, in `%LOCALAPPDATA%\CopyChar\backups`. A restore puts the folder back exactly as it was backed up, after backing up its current state. Details in [docs/adr/0003](docs/adr/0003-back-up-before-writing.md).
 - **Account settings unchecked by default and only sent to other accounts.** Most key bindings, general macros and Edit Mode layouts are stored per account, so copying a character folder to another account leaves them behind. They also apply to every character of the target account, so they are opt-in. Details in [docs/adr/0004](docs/adr/0004-copy-account-settings-across-accounts.md).
@@ -73,8 +74,8 @@ A file missing from the source is skipped and reported in the log; it is never d
 
 - **Account-wide addon profiles are not copied.** Many AceDB based addons (TomTom, Questie, RXPGuides...) store their settings in `WTF\Account\<account>\SavedVariables`, with a `profileKeys` table mapping each character to a profile. CopyChar does not edit these files: for these addons, pick the profile in the addon itself.
 - **Character settings alone are partial across accounts.** The character Edit Mode file only stores which layout is active, and most key bindings live at account level: without the account settings, the target keeps the layouts and bindings of its own account.
-- **Character-specific key bindings not checked in game.** They are only copied when the source has some. I have not checked that the target switches to character-specific bindings on its own.
-- **Server sync behavior is inferred, not documented.** The handling of settings sync comes from reading the `cache.md5` format, not from official documentation. A client update may change it.
+- **Character-specific key bindings.** When the source has its own, they are copied. When it uses its account bindings and a target has its own, the target gets the source's account bindings instead, so it ends up with the same keys.
+- **The copy needs a step in game.** The game keeps copied settings only after they change in game (step 5). This was checked on the WoW Forever beta for key bindings, macros and options; the other synced files (layout, Edit Mode, chat, click bindings) are expected to behave the same. None of it is documented by Blizzard and a client update may change it.
 - **Game detection by process name** (`Wow`, `WowClassic` and their B and T variants, such as `WowB` for the WoW Forever beta). If the path of one of these processes cannot be read, the copy is refused to be safe.
 - **WoW Forever is still in beta.** Its files were checked on the current beta build and may change before release.
 - **Backups are never purged**; delete them by hand from **Open folder**.

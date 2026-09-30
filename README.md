@@ -12,7 +12,13 @@ CopyChar lists your characters, copies the settings you pick to one or more char
 
 ## Installation
 
-Requirements to build: .NET 10 SDK, Windows.
+Download `CopyChar.exe` from the [latest release](https://github.com/jBeyondstars/CopyChar/releases/latest) and run it. Nothing to install, .NET included.
+
+The executable is not signed: on first launch, Windows SmartScreen may show "Windows protected your PC". Click **More info**, then **Run anyway**.
+
+### Build from source
+
+Requirements: .NET 10 SDK, Windows.
 
 ```
 dotnet publish src/CopyChar.App -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o publish

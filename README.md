@@ -43,6 +43,7 @@ dotnet test
    - **Character settings**: game options, key bindings and macros specific to the character, interface layout and Edit Mode, chat windows, click bindings (WoW Forever), enabled addons.
    - **Account settings**: key bindings, general macros, account options, Edit Mode layouts and text-to-speech. They are shared by every character of an account, so they are only copied to target characters on another account than the source, and they change every character of that account. Unchecked by default.
    - **Addon settings**: the per-character settings of each addon. Unchecked by default, because some addons (guides, quest trackers) also keep the character's progress there.
+     **All addons** checks them all at once, enabled or disabled.
 5. Check the **target characters** and click **Copy**. The confirmation lists what will be changed.
 
 When copying to another account, check the account settings as well: most key bindings and all Edit Mode layouts are stored per account, and the character settings alone would leave them behind.

@@ -78,9 +78,22 @@
                                 <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="4,2,4,4" Foreground="DimGray"
                                            Text="Only copied to targets on another account, and applied to every character of that account." />
                                 <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding AccountCategories}"
-                                              ItemTemplate="{StaticResource CheckItem}" Margin="4" />                                <TextBlock DockPanel.Dock="Top" Text="Character-specific addon settings" Margin="4,12,4,0" FontWeight="SemiBold" />
+                                              ItemTemplate="{StaticResource CheckItem}" Margin="4" />
+                                <TextBlock DockPanel.Dock="Top" Text="Character-specific addon settings" Margin="4,12,4,0" FontWeight="SemiBold" />
                                 <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="4,2,4,4" Foreground="DimGray"
                                            Text="Some addons also keep character progress (quests, guides) in these files." />
+                                <CheckBox DockPanel.Dock="Top" IsChecked="{Binding AllAddonsSelected}" IsThreeState="False" Margin="9,2,4,2">
+                                    <CheckBox.Style>
+                                        <Style TargetType="CheckBox">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Addons.Count}" Value="0">
+                                                    <Setter Property="IsEnabled" Value="False" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </CheckBox.Style>
+                                    <TextBlock Text="All addons" FontStyle="Italic" />
+                                </CheckBox>
                                 <ListBox ItemsSource="{Binding Addons}" ItemTemplate="{StaticResource CheckItem}" BorderThickness="0" />
                             </DockPanel>
                         </GroupBox>

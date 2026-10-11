@@ -91,8 +91,26 @@ public sealed class MainViewModel : ObservableObject
     public IReadOnlyList<Selectable<string>> Addons
     {
         get;
-        private set { field = value; OnPropertyChanged(); }
+        private set
+        {
+            field = value;
+            foreach (var addon in value)
+                addon.PropertyChanged += (_, _) => OnPropertyChanged(nameof(AllAddonsSelected));
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(AllAddonsSelected));
+        }
     } = [];
+
+    // Checks every addon at once, enabled or not; null when only some are checked.
+    public bool? AllAddonsSelected
+    {
+        get => Addons.All(a => a.IsSelected) ? Addons.Count > 0 : Addons.Any(a => a.IsSelected) ? null : false;
+        set
+        {
+            foreach (var addon in Addons)
+                addon.IsSelected = value ?? true;
+        }
+    }
 
     public ObservableCollection<string> Log { get; } = [];
 

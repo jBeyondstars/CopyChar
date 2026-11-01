@@ -1,4 +1,5 @@
 using System.IO;
+using CopyChar.Core;
 
 namespace CopyChar.App;
 
@@ -18,7 +19,8 @@ public static class AppStorage
         if (File.Exists(LastInstallFile))
         {
             var last = File.ReadAllText(LastInstallFile).Trim();
-            if (Directory.Exists(last))
+            // A version folder picked earlier may have lost its WTF, as a beta does once it ends.
+            if (GameFlavor.FindAll(last).Count > 0)
                 return last;
         }
 

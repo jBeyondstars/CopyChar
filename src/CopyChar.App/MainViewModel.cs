@@ -48,8 +48,24 @@ public sealed class MainViewModel : ObservableObject
             OnPropertyChanged();
             Characters = value is null ? [] : WtfScanner.FindCharacters(value.WtfPath);
             Source = null;
+            TargetFlavor = value;
         }
     }
+
+    // Defaults to the source version; another one copies across versions, such as a beta to its release.
+    public GameFlavor? TargetFlavor
+    {
+        get;
+        set
+        {
+            field = value;
+            OnPropertyChanged();
+            TargetCharacters = value is null ? [] : WtfScanner.FindCharacters(value.WtfPath);
+            UpdateTargets();
+        }
+    }
+
+    private IReadOnlyList<Character> TargetCharacters { get; set; } = [];
 
     public IReadOnlyList<Character> Characters
     {
@@ -64,10 +80,7 @@ public sealed class MainViewModel : ObservableObject
         {
             field = value;
             OnPropertyChanged();
-            Targets = Characters
-                .Where(c => value is not null && c != value)
-                .Select(c => new Selectable<Character>(c))
-                .ToList();
+            UpdateTargets();
             // Unchecked by default: some addons keep character progress (quests, guides) in these files.
             Addons = value is null
                 ? []
@@ -80,6 +93,12 @@ public sealed class MainViewModel : ObservableObject
         get;
         private set { field = value; OnPropertyChanged(); }
     } = [];
+
+    private void UpdateTargets() =>
+        Targets = TargetCharacters
+            .Where(c => Source is not null && c != Source)
+            .Select(c => new Selectable<Character>(c))
+            .ToList();
 
     public IReadOnlyList<Selectable<SettingCategory>> Categories { get; } =
         SettingCategory.PerCharacter.Select(c => new Selectable<SettingCategory>(c, isSelected: true)).ToList();
@@ -123,7 +142,7 @@ public sealed class MainViewModel : ObservableObject
 
     private void Copy()
     {
-        if (GameProcess.IsRunning(SelectedFlavor!.FolderPath))
+        if (GameProcess.IsRunning(TargetFlavor!.FolderPath))
         {
             Write("The game is running: quit it before copying, otherwise it will overwrite the files when it closes.");
             return;
@@ -139,7 +158,7 @@ public sealed class MainViewModel : ObservableObject
             Write($"Skipped, not found for {plan.Source}: {file}");
 
         if (AccountCategories.Any(c => c.IsSelected)
-            && plan.Targets.All(t => t.Account == plan.Source.Account))
+            && plan.Targets.All(t => t.AccountFolder.Equals(plan.Source.AccountFolder, StringComparison.OrdinalIgnoreCase)))
         {
             Write($"Account settings skipped: every target is on account {plan.Source.Account}, like the source.");
         }
@@ -150,7 +169,10 @@ public sealed class MainViewModel : ObservableObject
             return;
         }
 
-        if (!_confirm(Describe(plan)))
+        var question = Describe(plan);
+        if (TargetFlavor != SelectedFlavor)
+            question = $"From {SelectedFlavor} to {TargetFlavor}.\n\n" + question;
+        if (!_confirm(question))
             return;
 
         try

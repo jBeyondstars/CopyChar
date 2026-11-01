@@ -42,7 +42,7 @@
             <TextBlock Text="Game folder" VerticalAlignment="Center" Margin="0,0,8,0" />
             <TextBox Grid.Column="1" Text="{Binding InstallPath, Mode=OneWay}" IsReadOnly="True" VerticalContentAlignment="Center" />
             <Button Grid.Column="2" Content="Browse…" Padding="10,2" Margin="8,0" Click="Browse_Click" />
-            <TextBlock Grid.Column="3" Text="Version" VerticalAlignment="Center" Margin="8,0" />
+            <TextBlock Grid.Column="3" Text="Source version" VerticalAlignment="Center" Margin="8,0" />
             <ComboBox Grid.Column="4" ItemsSource="{Binding Flavors}" SelectedItem="{Binding SelectedFlavor}" />
         </Grid>
 
@@ -76,7 +76,7 @@
                                               ItemTemplate="{StaticResource CheckItem}" Margin="4" />
                                 <TextBlock DockPanel.Dock="Top" Text="Account settings" Margin="4,12,4,0" FontWeight="SemiBold" />
                                 <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="4,2,4,4" Foreground="DimGray"
-                                           Text="Only copied to targets on another account, and applied to every character of that account." />
+                                           Text="Only copied to targets on another account or version, and applied to every character of that account." />
                                 <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding AccountCategories}"
                                               ItemTemplate="{StaticResource CheckItem}" Margin="4" />
                                 <TextBlock DockPanel.Dock="Top" Text="Character-specific addon settings" Margin="4,12,4,0" FontWeight="SemiBold" />
@@ -99,11 +99,17 @@
                         </GroupBox>
 
                         <GroupBox Grid.Column="4" Header="3. Target characters">
-                            <ListBox ItemsSource="{Binding Source={StaticResource TargetsByAccount}}" ItemTemplate="{StaticResource CheckItem}" BorderThickness="0">
-                                <ListBox.GroupStyle>
-                                    <StaticResource ResourceKey="AccountGroup" />
-                                </ListBox.GroupStyle>
-                            </ListBox>
+                            <DockPanel>
+                                <DockPanel DockPanel.Dock="Top" Margin="4">
+                                    <TextBlock Text="Version" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                    <ComboBox ItemsSource="{Binding Flavors}" SelectedItem="{Binding TargetFlavor}" />
+                                </DockPanel>
+                                <ListBox ItemsSource="{Binding Source={StaticResource TargetsByAccount}}" ItemTemplate="{StaticResource CheckItem}" BorderThickness="0">
+                                    <ListBox.GroupStyle>
+                                        <StaticResource ResourceKey="AccountGroup" />
+                                    </ListBox.GroupStyle>
+                                </ListBox>
+                            </DockPanel>
                         </GroupBox>
                     </Grid>
                 </DockPanel>

@@ -123,4 +123,24 @@ public class CopyPlanTests
         Assert.Empty(plan.AccountFiles);
         Assert.Empty(plan.SkippedFiles);
     }
+
+    [Fact]
+    public void Sends_account_settings_to_the_account_of_the_same_name_in_another_version()
+    {
+        using var beta = new TempWtf();
+        using var release = new TempWtf();
+        beta.AddAccountFile("111#1", "bindings-cache.wtf");
+        beta.AddCharacterFile("111#1", "70", "Source-Realm", "config-cache.wtf");
+        release.AddCharacterFile("111#1", "70", "Target-Realm", "config-cache.wtf");
+
+        var plan = CopyPlan.Create(
+            beta.Character("Source-Realm"),
+            [release.Character("Target-Realm")],
+            [SettingCategory.GameOptions, SettingCategory.AccountKeyBindings],
+            []);
+
+        Assert.Equal([release.AccountPath("111#1")], plan.TargetAccounts);
+        Assert.Equal(["bindings-cache.wtf"], plan.AccountFiles);
+        Assert.Equal(["config-cache.wtf"], plan.Files);
+    }
 }

@@ -1,6 +1,6 @@
 # CopyChar
 
-Windows tool that copies the settings of a World of Warcraft Classic character (Anniversary, Era, or the new WoW Forever) to other characters: game options, interface layout, chat windows, macros, key bindings, enabled addons and addon settings, including between two accounts.
+Windows tool that copies the settings of a World of Warcraft Classic character (Anniversary, Era, or WoW Forever) to other characters: game options, interface layout, chat windows, macros, key bindings, enabled addons and addon settings, including between two accounts and from one game version to another, such as from the WoW Forever beta to its release.
 
 ![CopyChar main window](docs/images/main-window.png)
 
@@ -37,16 +37,25 @@ dotnet test
 ### Copy settings
 
 1. Quit the game completely.
-2. Start `CopyChar.exe`. The `World of Warcraft` folder is found in `Program Files`; otherwise pick it with **Browse**. The version you played last (anniversary, classic_era, classic_beta for WoW Forever...) is selected; change it with **Version** if needed.
+2. Start `CopyChar.exe`. The `World of Warcraft` folder is found in `Program Files`; otherwise pick it with **Browse**. The version you played last (anniversary, classic_era, forever...) is selected; change it with **Source version** if needed.
 3. Pick the **source character**. Characters are grouped by account.
 4. Check the **settings to copy**:
    - **Character settings**: game options, key bindings and macros specific to the character, interface layout and Edit Mode, chat windows, click bindings (WoW Forever), enabled addons.
    - **Account settings**: key bindings, general macros, account options, Edit Mode layouts and text-to-speech. They are shared by every character of an account, so they are only copied to target characters on another account than the source, and they change every character of that account. Unchecked by default.
    - **Addon settings**: the per-character settings of each addon. Unchecked by default, because some addons (guides, quest trackers) also keep the character's progress there.
      **All addons** checks them all at once, enabled or disabled.
-5. Check the **target characters** and click **Copy**. The confirmation lists what will be changed.
+5. Check the **target characters** and click **Copy**. The confirmation lists what will be changed. Targets are listed for the source version; pick another one in the **Version** list above them to copy to another version.
 
-When copying to another account, check the account settings as well: most key bindings and all Edit Mode layouts are stored per account, and the character settings alone would leave them behind.
+When copying to another account or another version, check the account settings as well: most key bindings and all Edit Mode layouts are stored per account, and the character settings alone would leave them behind.
+
+### From the WoW Forever beta to the release
+
+The beta characters are in `_classic_beta_`, the release ones in `_forever_`.
+
+1. If `_classic_beta_` no longer has a `WTF` folder, put the backup of it back there first (for example by extracting it), so that the path is `_classic_beta_\WTF\Account\...`.
+2. Log in once with each target character on the release, then log out: the game only creates a character's folder at that point, and CopyChar only lists characters that have one.
+3. Pick `classic_beta` in **Source version**, the beta character, then `forever` in the **Version** list of the target characters.
+4. Check the account settings too, since the release accounts start empty. Beta and release accounts can have different numbers (`#1`, `#6`...): check which account each target is on.
 
 ### After the copy: one step in game
 
@@ -76,7 +85,8 @@ Before changing anything, CopyChar backs up each target character and each targe
 
 - **Account-wide addon profiles are not copied.** Many addons (TomTom, Questie, RXPGuides...) keep their settings per account, with a profile per character. Pick the profile in the addon itself on the target character.
 - **Copied settings need the step in game** described above; skipping it brings the old settings back later.
-- **WoW Forever is in beta.** A client update may change how settings are stored.
+- **Copies between versions are not checked.** A setting the target version does not know is ignored by the game; addons listed in `AddOns.txt` but not installed on the target are ignored too.
+- **Target characters must have been played once** on the target version, otherwise they have no folder to copy to.
 - **Backups are never deleted automatically.** Remove old ones from **Open folder** in the **Backups** tab.
 - **Write access.** If the game is installed in a folder you cannot write to, the copy fails with an access denied message; run CopyChar as administrator.
 - The Yes/No buttons of the confirmations follow the Windows display language.
